@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+ADMIN_PATH="vendor/silverstripe/admin"
+GIT_PATH="$ADMIN_PATH/.git"
+NODE_MODULES="$ADMIN_PATH/node_modules"
+
+function boom() {
+  echo -e "\033[0;31m$1\033[0m" >&2
+  exit 1
+}
+
+function happy() {
+  msg="'silverstripe/admin' has been installed properly for CMS JS development"
+  echo -e "\033[0;32m$msg\033[0m" >&2
+  exit 0
+}
+
+# Check if we can find admin
+function check() {
+  if [ ! -d "$ADMIN_PATH" ]; then
+    boom "'silverstripe/admin' has not been installed yet. Run 'composer install --prefer-source'" >&2
+  fi
+  if [ ! -d "$GIT_PATH" ]; then
+    boom "'silverstripe/admin' has not been installed from source. Run 'rm -rf vendor/silverstripe/admin && composer install --prefer-source'" >&2
+  fi
+  if [ ! -d "$NODE_MODULES" ]; then
+    boom "'silverstripe/admin' JS dependencies have not been installed. Run '(cd vendor/silverstripe/admin ; yarn install)'"
+  fi
+}
+
+function reinstall() {
+  # Re-installing
+  if [[ -d "$ADMIN_PATH" && ! -d "$GIT_PATH" ]]; then
+    echo "'silverstripe/admin' has not been installed from source. Removing local install."
+    rm -rf $ADMIN_PATH || boom "Failed to remove '$ADMIN_PATH'"
+  fi
+
+  if [ ! -d "$ADMIN_PATH" ]; then
+    echo "Installing 'silverstripe/admin' from source"
+    $composer install --prefer-source --quiet || boom "Failed install 'silverstripe/admin'"
+  fi
+
+  if [ ! -d "$NODE_MODULES" ]; then
+    echo "Installing 'silverstripe/admin' JS dependencies"
+    (cd $ADMIN_PATH && yarn install --silent) || boom "'yarn install' failed"
+  fi
+}
+
+# Check for an argument
+ops=$1
+if [[ "$ops" != "check" && "$ops" != "reinstall" ]]; then
+	echo "Usage: $0 (check|reinstall)
+Install silverstripe/admin from source for JS development"
+	exit 1
+fi
+
+# Finding all our executables
+for executable in which yarn git; do
+	if ! [ -x "$(command -v $executable)" ]; then
+    boom "Error: requires the '$executable' command to operate."
+  fi
+done
+
+# Find Composer
+for candidate in composer composer.phar; do
+	if [ `which $candidate 2>/dev/null` -a -f `which $candidate 2>/dev/null` ]; then
+		composer=`which $candidate 2>/dev/null`
+		break
+	fi
+done
+if [ "$composer" = "" ]; then
+	boom "Error: Can't find any composer"
+fi
+
+# Doing the actual work
+if [ "$ops" = "check" ]; then
+  check
+else
+  reinstall
+fi
+
+happy

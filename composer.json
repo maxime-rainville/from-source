@@ -1,6 +1,6 @@
 {
     "name": "maxime-rainville/from-source",
-    "description": "Utility to install Silverstripe lib from source for JS development",
+    "description": "Utility to install `silverstripe-admin` from source for JS development",
     "type": "library",
     "license": "BSD-3-Clause",
     "authors": [
@@ -10,5 +10,10 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {}
+    "require": {
+        "silverstripe/admin": "^1"
+    },
+    "bin": [
+        "from-source"
+    ]
 }
