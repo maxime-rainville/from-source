@@ -11,7 +11,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "silverstripe/admin": "^1"
+        "silverstripe/admin": "^2"
     },
     "bin": [
         "from-source"
